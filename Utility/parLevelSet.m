@@ -1,0 +1,2 @@
+%parallelScript
+levelSetSegmentation_Li_sequence( [baseDir '\Aligned'], 'MH2490_811_Sal_demin_Aligned','MH2490_811_Sal_demin_0000-labels.tif',5, timestep,iter_inner,iter_outer,lambda,alfa1,alfa2,epsilon,sigma,potential,iter_refine,edgeDetector,alpha_s,beta_s)

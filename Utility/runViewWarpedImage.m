@@ -1,0 +1,3 @@
+orgImage = imread('C:\Users\hardisty\Documents\mike\Dropbox\DIC_Test\2510MD-1-1-2saline_cam2_C002S0001\DICb0000_histeq.tif');
+workspaceFile = 'C:\Users\hardisty\Documents\mike\Dropbox\SSDIC\DIC Workshop Package\DIC_2010_06\DIC_Outputs_for_2011-07-31_13_24_50\Workspace\Workspace2011-07-31_15_44_16'
+[orgImageROI, warpedImageROI,targetImageROI] = viewWarpedImage(orgImage, workspaceFile, [true, true, true], [false, false, false]);

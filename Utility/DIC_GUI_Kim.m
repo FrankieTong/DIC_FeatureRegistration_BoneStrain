@@ -1,0 +1,7 @@
+% October 2, 2012
+
+% spec 8, subset size: 19, subset spacing: 7, frames: "48" - end, 50 increm
+mydef_image_fileListP_S8={'D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_01.tif';'D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_02.tif';'D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_03.tif';'D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_04.tif';'D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_05.tif';'D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_06.tif';'D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_07.tif';'D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_08.tif';'D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_09.tif';'D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_10.tif';'D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_11.tif';'D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_12.tif';'D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_13.tif';'D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_14.tif';'D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_15.tif';'D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_16.tif';'D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_17.tif';'D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_18.tif'};
+
+mcGillDIC('D:\Frames_Spcm8_MH2440_s44_sal_Orthog\75-81\C_nonH_S_00.tif',mydef_image_fileListP_S8,19,7,[0;0;0;0;0;0],71,138,105,198,'Quintic (5th order)',[1.00E-08,5.00E-06],'Newton Raphson',40,true,1:(length(mydef_image_fileListP_S8)));
+

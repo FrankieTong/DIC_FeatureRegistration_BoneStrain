@@ -1,5 +1,6 @@
 function [subimage, image_maximum, image_minimum, subimage_maximum, subimage_minimum] = getsubimage(image, center, blocksize, pad)
-%{  This function retrieves a subimage given the image, center and blocksize. 
+%{  
+    This function retrieves a subimage given the image, center and blocksize. 
 	Any subimage pixels that lie outside the image boundary is given the value defined in pad.
 	
 	Works only for 2D images at the moment.

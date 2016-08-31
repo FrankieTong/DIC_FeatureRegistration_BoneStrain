@@ -1,5 +1,6 @@
 function [image_maximum, image_minimum, subimage_maximum, subimage_minimum] = calcimageindex(center, blocksize, maximum, minimum)
-%{  This function calculates the image and matching subimage indexes given we want to retrieve a subimage from an image given the
+%{  
+    This function calculates the image and matching subimage indexes given we want to retrieve a subimage from an image given the
 	center of the subimage, the blocksize and the maximum and minimum index values in which we are allowed to retrieve a subimage from
 	the original image.
 	

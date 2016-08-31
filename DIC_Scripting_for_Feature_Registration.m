@@ -37,7 +37,7 @@ end
 
 %% DVC Parameters
 DVC_Only = false;	%Toggle on to run DVC only
-subsetSizeS = 41; 	%Size of the DVC subset image size. Must be odd
+subsetSizeS = 81; 	%Size of the DVC subset image size. Must be odd
 percentage_overlap = 0.75;	%Percentage of subset that overlaps neighbouring subsets. Range = (0,1)
 subsetSpaceS = ceil(subsetSizeS-subsetSizeS*percentage_overlap);
 
@@ -79,7 +79,7 @@ moving_image_threshold = 0.5; %Percenage at which any intensity value above this
 
 
 % Feature descriptor matching criteria
-BlockSize = 15; 			%Size of the neighbourhood surronding the feature point used as descritor in pixels. Must be Odd and smaller than block size of DVC
+BlockSize = 23; 			%Size of the neighbourhood surronding the feature point used as descritor in pixels. Must be Odd and smaller than block size of DVC
 MatchThreshold = 10;  		%Each match possiblity between feature descriptor generates a quality factor Q with the best matches having Q=0. This parameter defines the highest Q can get for a potential match before it is discarded. Range = (0,100]
 MaxRatio = 0.1; 			%Taking the ratio of the the best Q over the second best Q for a particular feature point, MaxRatio defines the highest this ratio can go before attempt to match feature point is rejected due to ambigous matching. Range = (0,1]
 MatchMetricMinimize = true; %Apply MatchThreshold and MaxRatio between all points found using DVC and feature registration. Default = true
@@ -375,11 +375,14 @@ if DVC_Only == false
                 [fixed_points_subset_found, moving_points_subset_found, skel_fixed_image_subset, skel_moving_image_subset, bin_fixed_image_subset, bin_moving_image_subset] = Skeletonization_Feature_Find(fixed_image_threshold_method, rescaled_fixed_image_threshold ,moving_image_threshold_method, rescaled_moving_image_threshold, upsample_scaling, use_active_contour, segment_refine, morph_close, morph_endpoints, morph_remove_branches, display_figures,Skeletonization_Find_Param);
 
 				% Add feature points found during the feature registration of this subimage to the global list
-                for k = 1:size(fixed_points_subset_found,1)
-                    fixed_points_all_found = [fixed_points_all_found; fixed_points_subset_found(k,:)  + [(last_WS.mesh_col(i)-offset_size) (last_WS.mesh_row(j)-offset_size)]];
+                if ~isempty(fixed_points_subset_found)
+                    temp = fixed_points_subset_found + repmat([(last_WS.mesh_col(i)-offset_size) (last_WS.mesh_row(j)-offset_size)], size(fixed_points_subset_found,1),1);
+                    fixed_points_all_found = [fixed_points_all_found; temp];
                 end
-                for k = 1:size(moving_points_subset_found,1)
-                    moving_points_all_found = [moving_points_all_found; moving_points_subset_found(k,:)  + [(last_WS.mesh_col(i)+last_WS.DEFORMATION_PARAMETERS(j,i,1)-offset_size) (last_WS.mesh_row(j)+last_WS.DEFORMATION_PARAMETERS(j,i,2)-offset_size)]];
+                
+                if ~isempty(moving_points_subset_found)
+                    temp = moving_points_subset_found + repmat([(last_WS.mesh_col(i)+last_WS.DEFORMATION_PARAMETERS(j,i,1)-offset_size) (last_WS.mesh_row(j)+last_WS.DEFORMATION_PARAMETERS(j,i,2)-offset_size)], size(moving_points_subset_found,1),1);
+                    moving_points_all_found = [moving_points_all_found; temp];
                 end
 
 				%% Perform feature descriptor matching between feature points found in the feature registration of this subimage.
@@ -416,27 +419,35 @@ if DVC_Only == false
                 % Moving points is adjusted back to the original fixed
                 % image coordinates by adding back the subimage coordinate
                 % AND the displacement DVC vector
-                for k = 1:size(fixed_points_subset_matched,1)
-                    fixed_points_subset_wrt_fixed_image(k,:) = fixed_points_subset_matched(k,:) + [(last_WS.mesh_col(i)-offset_size) (last_WS.mesh_row(j)-offset_size)];  %+ or -?
-                    moving_points_subset_wrt_fixed_image(k,:) = moving_points_subset_matched(k,:) + [(last_WS.mesh_col(i)+last_WS.DEFORMATION_PARAMETERS(j,i,1)-offset_size) (last_WS.mesh_row(j)+last_WS.DEFORMATION_PARAMETERS(j,i,2)-offset_size)];
+                if ~isempty(fixed_points_subset_matched)
+                    fixed_points_subset_wrt_fixed_image = fixed_points_subset_matched + repmat([(last_WS.mesh_col(i)-offset_size) (last_WS.mesh_row(j)-offset_size)],size(fixed_points_subset_matched,1),1);
                 end
-
+                
+                if ~isempty(moving_points_subset_matched)
+                    moving_points_subset_wrt_fixed_image = moving_points_subset_matched + repmat([(last_WS.mesh_col(i)+last_WS.DEFORMATION_PARAMETERS(j,i,1)-offset_size) (last_WS.mesh_row(j)+last_WS.DEFORMATION_PARAMETERS(j,i,2)-offset_size)],size(fixed_points_subset_matched,1),1);
+                end
+                    
                 %Append both adjusted list of points to the total list of points
-                fixed_points = [fixed_points; fixed_points_subset_wrt_fixed_image];
-                moving_points = [moving_points; moving_points_subset_wrt_fixed_image];
-                match_metric = [match_metric; matchMetric];
-                match_ratio = [match_ratio; matchRatio];
-                match_metric_DVC = [match_metric_DVC; last_WS.DEFORMATION_PARAMETERS(j,i,3)];
-
-				%% Image reconstruction of DVC subsets to a global image
+                if ~isempty(fixed_points_subset_wrt_fixed_image)
+                    fixed_points = [fixed_points; fixed_points_subset_wrt_fixed_image];
+                end
+                if ~isempty(moving_points_subset_wrt_fixed_image)
+                    moving_points = [moving_points; moving_points_subset_wrt_fixed_image];
+                end
+                if ~isempty(matchMetric)
+                    match_metric = [match_metric; matchMetric];
+                end
+                if ~isempty(matchRatio)
+                    match_ratio = [match_ratio; matchRatio];
+                end
 				
-                % Reconstruct moving image back to global cordinates
+                %Reconstruct moving image back to global cordinates
                 offset_spacing = floor((last_WS.subset_space)/2);
                 image_range_shift = [-offset_spacing:offset_spacing];
                 image_subset_range = [(ceil((last_WS.subset_size)/2)-offset_spacing):(ceil((last_WS.subset_size)/2)+offset_spacing)];
 
                 moving_image_wrt_fixed_image(last_WS.mesh_row(j) + image_range_shift,last_WS.mesh_col(i) + image_range_shift) = moving_image_subset_find(image_subset_range,image_subset_range);
-
+                
                 % Reconstruct the fixed and moving binary images and image 
                 % skeletons back to the global coordinates
 
@@ -848,9 +859,11 @@ if DVC_Only == false
 	%% Create images for viewing DVC results
     Skeletonization_Display_Figure(fixed_image, Origin, SpacingSize, DimensionSize, 'Fixed Image with Matched Feature Points for Feature Reg');
     Skeletonization_Add_Points(fixed_points_MLS, 10.5, 'r.');
+    Skeletonization_Draw_Boundary_Box(fixed_image_feature_find_subimages_boundary_MLS,0.5,['r','g']);
 
     Skeletonization_Display_Figure(moving_image, Origin, SpacingSize, DimensionSize, 'Moving Image with Matched Feature Points for Feature Reg');
     Skeletonization_Add_Points(moving_points_MLS, 10.5, 'r.');
+    Skeletonization_Draw_Boundary_Box(moving_image_feature_find_subimages_boundary_MLS,0.5,['r','g']);
 
     Skeletonization_Display_Figure(fixed_image, Origin, SpacingSize, DimensionSize, 'Fixed Image with Matched Feature Point Vectors for Feature Reg');
     Skeletonization_Add_Points(fixed_points_MLS, 10.5, 'r.');

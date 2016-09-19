@@ -154,10 +154,10 @@ if Skeletonization_Only == false
     line.Color = 'g';
 
     % Display displacement error statistics on plot
-    [displacement_stats.mean_error, displacement_stats.std_deviation, displacement_stats.ten_percentile, displacement_stats.ninety_percentile, displacement_stats.directional_similarity, displacement_stats.difference_of_magnitude, displacement_stats.magnitude_of_difference] = Skeletonization_Error(points, values);
+    [displacement_stats.mean_error, displacement_stats.absolute_mean_error, displacement_stats.std_deviation, displacement_stats.ten_percentile, displacement_stats.ninety_percentile, displacement_stats.directional_similarity, displacement_stats.difference_of_magnitude, displacement_stats.magnitude_of_difference] = Skeletonization_Error(points, values);
 
-    dim = [0.5 0.1 0.3 0.3];
-    str = {sprintf('mean error = %f', displacement_stats.mean_error),sprintf('std deviation = %f', displacement_stats.std_deviation), sprintf('10 percentile = %f', displacement_stats.ten_percentile) ...
+    dim = [0.5 0.125 0.3 0.3];
+    str = {sprintf('mean error = %f', displacement_stats.mean_error),sprintf('absolute mean error = %f', displacement_stats.absolute_mean_error), sprintf('std deviation = %f', displacement_stats.std_deviation), sprintf('10 percentile = %f', displacement_stats.ten_percentile) ...
                     ,sprintf('90 percentile = %f', displacement_stats.ninety_percentile), sprintf('directional similarity = %f', displacement_stats.directional_similarity), sprintf('difference of magnitude = %f', displacement_stats.difference_of_magnitude) ...
                         , sprintf('magnitude of difference = %f', displacement_stats.magnitude_of_difference)};
     annotation('textbox',dim,'String',str,'FitBoxToText','on');
@@ -203,10 +203,10 @@ if Skeletonization_Only == false
     line.Color = 'g';
 
     % Display strain error statistics on plot
-    [strain_stats.mean_error, strain_stats.std_deviation, strain_stats.ten_percentile, strain_stats.ninety_percentile, strain_stats.directional_similarity, strain_stats.difference_of_magnitude, strain_stats.magnitude_of_difference] = Skeletonization_Error(points, values);
+    [strain_stats.mean_error, strain_stats.absolute_mean_error, strain_stats.std_deviation, strain_stats.ten_percentile, strain_stats.ninety_percentile, strain_stats.directional_similarity, strain_stats.difference_of_magnitude, strain_stats.magnitude_of_difference] = Skeletonization_Error(points, values);
 
-    dim = [0.5 0.1 0.3 0.3];
-    str = {sprintf('mean error = %f', strain_stats.mean_error),sprintf('std deviation = %f', strain_stats.std_deviation), sprintf('10 percentile = %f', strain_stats.ten_percentile) ...
+    dim = [0.5 0.125 0.3 0.3];
+    str = {sprintf('mean error = %f', strain_stats.mean_error),sprintf('absolute mean error = %f', strain_stats.absolute_mean_error), sprintf('std deviation = %f', strain_stats.std_deviation), sprintf('10 percentile = %f', strain_stats.ten_percentile) ...
                     ,sprintf('90 percentile = %f', strain_stats.ninety_percentile), sprintf('directional similarity = %f', strain_stats.directional_similarity), sprintf('difference of magnitude = %f', strain_stats.difference_of_magnitude) ...
                         , sprintf('magnitude of difference = %f', strain_stats.magnitude_of_difference)};
     annotation('textbox',dim,'String',str,'FitBoxToText','on');
@@ -246,7 +246,7 @@ if DVC_Only == false
     x_axis_limits = [Origin(ImageDimensionality), FarCorner(ImageDimensionality)];
 
     points = fixed_points_MLS(:,ImageDimensionality)';
-    values = displacement(:,ImageDimensionality)';
+    values = moving_points_MLS(:,ImageDimensionality) - fixed_points_MLS(:,ImageDimensionality);
 
     ideal_points_location = ones(100,ImageDimensionality);
     for i = 1:ImageDimensionality
@@ -299,7 +299,8 @@ if DVC_Only == false
 
     ideal_points_wrt_nodal_points = displacement_eq(fixed_points_MLS);
     points = ideal_points_wrt_nodal_points(:,ImageDimensionality);
-    values = displacement(:,ImageDimensionality);
+    %values = displacement(:,ImageDimensionality);
+    values = moving_points_MLS(:,ImageDimensionality) - fixed_points_MLS(:,ImageDimensionality);
 
     ideal_points_location = ones(100,ImageDimensionality);
     for i = 1:ImageDimensionality
@@ -333,10 +334,10 @@ if DVC_Only == false
     line.Color = 'g';
 
     % Display displacement error statistics on plot
-    [displacement_stats.mean_error, displacement_stats.std_deviation, displacement_stats.ten_percentile, displacement_stats.ninety_percentile, displacement_stats.directional_similarity, displacement_stats.difference_of_magnitude, displacement_stats.magnitude_of_difference] = Skeletonization_Error(points, values);
+    [displacement_stats.mean_error, displacement_stats.absolute_mean_error, displacement_stats.std_deviation, displacement_stats.ten_percentile, displacement_stats.ninety_percentile, displacement_stats.directional_similarity, displacement_stats.difference_of_magnitude, displacement_stats.magnitude_of_difference] = Skeletonization_Error(points, values);
 
-    dim = [0.5 0.1 0.3 0.3];
-    str = {sprintf('mean error = %f', displacement_stats.mean_error),sprintf('std deviation = %f', displacement_stats.std_deviation), sprintf('10 percentile = %f', displacement_stats.ten_percentile) ...
+    dim = [0.5 0.125 0.3 0.3];
+    str = {sprintf('mean error = %f', displacement_stats.mean_error),sprintf('absolute mean error = %f', displacement_stats.absolute_mean_error), sprintf('std deviation = %f', displacement_stats.std_deviation), sprintf('10 percentile = %f', displacement_stats.ten_percentile) ...
                     ,sprintf('90 percentile = %f', displacement_stats.ninety_percentile), sprintf('directional similarity = %f', displacement_stats.directional_similarity), sprintf('difference of magnitude = %f', displacement_stats.difference_of_magnitude) ...
                         , sprintf('magnitude of difference = %f', displacement_stats.magnitude_of_difference)};
     annotation('textbox',dim,'String',str,'FitBoxToText','on');
@@ -382,12 +383,13 @@ if DVC_Only == false
     line.Color = 'g';
 
     % Display strain error statistics on plot
-    [strain_stats.mean_error, strain_stats.std_deviation, strain_stats.ten_percentile, strain_stats.ninety_percentile, strain_stats.directional_similarity, strain_stats.difference_of_magnitude, strain_stats.magnitude_of_difference] = Skeletonization_Error(points, values);
+    
+    [strain_stats.mean_error, strain_stats.absolute_mean_error, strain_stats.std_deviation, strain_stats.ten_percentile, strain_stats.ninety_percentile, strain_stats.directional_similarity, strain_stats.difference_of_magnitude, strain_stats.magnitude_of_difference] = Skeletonization_Error(points, values);
 
-    dim = [0.5 0.1 0.3 0.3];
-    str = {sprintf('mean error = %f', strain_stats.mean_error),sprintf('std deviation = %f', strain_stats.std_deviation), sprintf('10 percentile = %f', strain_stats.ten_percentile) ...
+    dim = [0.5 0.125 0.3 0.3];
+    str = {sprintf('mean error = %f', strain_stats.mean_error),sprintf('absolute mean error = %f', strain_stats.absolute_mean_error), sprintf('std deviation = %f', strain_stats.std_deviation), sprintf('10 percentile = %f', strain_stats.ten_percentile) ...
                     ,sprintf('90 percentile = %f', strain_stats.ninety_percentile), sprintf('directional similarity = %f', strain_stats.directional_similarity), sprintf('difference of magnitude = %f', strain_stats.difference_of_magnitude) ...
                         , sprintf('magnitude of difference = %f', strain_stats.magnitude_of_difference)};
-    annotation('textbox',dim,'String',str,'FitBoxToText','on');
+    annotation('textbox',dim,'String',str,'FitBoxToText','on');;
 
 end

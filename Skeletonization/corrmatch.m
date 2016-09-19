@@ -96,7 +96,7 @@ function [matched_fixed_points, matched_moving_points, matchedPoints_matchMetric
         end
 
         %Generate interpolant for each point
-        fixed_image_interpolator = griddedInterpolant(fixed_image_grid_vectors,permute(fixed_image,order),'spline');
+        fixed_image_interpolator = griddedInterpolant(fixed_image_grid_vectors,permute(fixed_image,order),'cubic');
 
         %Generate the new grid of points for the resampled image
 
@@ -130,7 +130,7 @@ function [matched_fixed_points, matched_moving_points, matchedPoints_matchMetric
         end
 
         %Generate interpolant for each point
-        moving_image_interpolator = griddedInterpolant(moving_image_grid_vectors,permute(moving_image,order),'spline');
+        moving_image_interpolator = griddedInterpolant(moving_image_grid_vectors,permute(moving_image,order),'cubic');
 
         %Generate the new grid of points for the resampled image
 

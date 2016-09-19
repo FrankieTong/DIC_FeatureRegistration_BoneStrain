@@ -24,23 +24,20 @@ function [subimage, image_maximum, image_minimum, subimage_maximum, subimage_min
 
 	% Define same block size across all image dimensions if only a number was given
     if length(blocksize) == 1
-        blocksize = blocksize*center./center;
+        blocksize(1:length(center)) = blocksize;
     end
     
 	%Set the start and stop index of the image to be the entire image region
     template_minimum = size(image)./size(image);
     template_maximum = size(image);
     
-    %Create zero pad zone first
-    subimage = ones(blocksize);
-	
-	%Pad the entire subimage with the pad value
-    subimage = pad*subimage;
-
     %Get image index limits
     [image_maximum, image_minimum, subimage_maximum, subimage_minimum] = calcimageindex(center, blocksize, template_maximum, template_minimum);
     
-    %Set the subimage into the padded image zone
+    %Create padded image first
+    subimage = pad*ones(blocksize);
+    
+    %Set the subimage into the zero padded zone
     subimage(subimage_minimum(1):subimage_maximum(1), subimage_minimum(2):subimage_maximum(2)) = image(image_minimum(1):image_maximum(1),image_minimum(2):image_maximum(2));
 
 end

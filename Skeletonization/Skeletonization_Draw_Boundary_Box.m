@@ -10,8 +10,12 @@ if ~exist('line_color', 'var')
     line_color = 'r';
 end
 
+alternate_color = length(line_color);
+
 for i = 1:size(box_list,1)
-    rectangle('Position', box_list(i,:), 'EdgeColor', line_color, 'LineWidth', line_width);
+    if ~strcmp(line_color(mod(i,alternate_color)+1), ' ')
+        rectangle('Position', box_list(i,:), 'EdgeColor', line_color(mod(i,alternate_color)+1), 'LineWidth', line_width);
+    end
 end
 
 hold off

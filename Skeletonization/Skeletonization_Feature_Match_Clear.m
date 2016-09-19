@@ -1,6 +1,5 @@
 function [matched_fixed_points, matched_moving_points, matchedPoints_matchMetric] = Skeletonization_Feature_Match_Clear(varargin)
 
-%% For use if running as a script
 
 if nargin == 0
     
@@ -87,6 +86,20 @@ else
     matched_moving_points = [NaN];
     return
 end
+
+% fixed_image_param.threshold_method = 40;
+% fixed_image_param.threshold = 20;
+% 
+% BlockSize = 11;
+% MaxRatio = 0.5;
+% MaxThreshold = 1;
+% 
+% morph_close = false;
+% morph_endpoints = true;
+% 
+% upsample_scaling = 1;
+% 
+% clean_up_images = 1;
 
 if ischar(image_setup)
     try

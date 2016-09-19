@@ -1,5 +1,6 @@
-function [fixed_points, moving_points, skel_fixed, skel_moving, bin_fixed_image, bin_moving_image] = Skeletonization_Feature_Find(varargin)
-%{  This function performs skeletonization and feature finding on the input given fixed and moving images. It returns the feature points found
+function [fixed_points, moving_points, skel_fixed, skel_moving, bin_fixed_image, bin_moving_image] = Skeletonization_Feature_Find_Clear(varargin)
+%{  
+    This function performs skeletonization and feature finding on the input given fixed and moving images. It returns the feature points found
 	in the fixed and moving images as well as the skeletonized fixed and moving images and the binarized fixed and moving images (downsampled
 	back to the original image resolution if upsampling was needed).
 	
@@ -177,7 +178,7 @@ if upsample_scaling ~= 1
     end
 
     %Generate interpolant for each point
-    fixed_image_skeletonize_interpolator = griddedInterpolant(fixed_image_skeletonize_grid_vectors,permute(fixed_image_skeletonize,order),'spline');
+    fixed_image_skeletonize_interpolator = griddedInterpolant(fixed_image_skeletonize_grid_vectors,permute(fixed_image_skeletonize,order),'cubic');
     
     %Generate the new grid of points for the resampled image
     
@@ -216,7 +217,7 @@ if upsample_scaling ~= 1
     end
 
     %Generate interpolant for each point
-    moving_image_skeletonize_interpolator = griddedInterpolant(moving_image_skeletonize_grid_vectors,permute(moving_image_skeletonize,order),'spline');
+    moving_image_skeletonize_interpolator = griddedInterpolant(moving_image_skeletonize_grid_vectors,permute(moving_image_skeletonize,order),'cubic');
     
     %Generate the new grid of points for the resampled image
     
@@ -464,147 +465,153 @@ end
 
 
 %% Downsample skel and bin images back to normal resolution before passing it back to calling function
+if false
+    %% Downsample skeleton for fixed image
 
-%% Downsample skeleton for fixed image
+    %Set up rearrange of order using permute
+    order = length(size(skel_fixed));
 
-%Set up rearrange of order using permute
-order = length(size(skel_fixed));
+    order = [1:order];
 
-order = [1:order];
+    order(1) = 2;
+    order(2) = 1;
 
-order(1) = 2;
-order(2) = 1;
+    %Generate the grid vectors for the image
 
-%Generate the grid vectors for the image
+    FarCorner = Origin + SpacingSize.*(DimensionSize-1);
 
-FarCorner = Origin + SpacingSize.*(DimensionSize-1);
+    skel_fixed_image_grid_vectors = {};
 
-skel_fixed_image_grid_vectors = {};
+    for i = 1:ImageDimensionality
+       skel_fixed_image_grid_vectors{i} = [Origin(i):SpacingSize(i):FarCorner(i)];
+    end
 
-for i = 1:ImageDimensionality
-   skel_fixed_image_grid_vectors{i} = [Origin(i):SpacingSize(i):FarCorner(i)];
+    %Generate interpolant for each point
+    skel_fixed_image_interpolator = griddedInterpolant(skel_fixed_image_grid_vectors,single(permute(skel_fixed,order)),'cubic');
+
+    %Generate the new grid of points for the resampled image
+
+    skel_fixed_image_grid_vectors_resample = {};
+
+    for i = 1:ImageDimensionality
+       skel_fixed_image_grid_vectors_resample{i} = [Origin(i):SpacingSize(i)*upsample_scaling:FarCorner(i)];
+    end
+
+    skel_fixed = permute(skel_fixed_image_interpolator(skel_fixed_image_grid_vectors_resample),order);
+
+    %% Downsample skeleton for moving image
+
+    %Set up rearrange of order using permute
+    order = length(size(skel_moving));
+
+    order = [1:order];
+
+    order(1) = 2;
+    order(2) = 1;
+
+    %Generate the grid vectors for the image
+
+    FarCorner = Origin + SpacingSize.*(DimensionSize-1);
+
+    skel_moving_image_grid_vectors = {};
+
+    for i = 1:ImageDimensionality
+       skel_moving_image_grid_vectors{i} = [Origin(i):SpacingSize(i):FarCorner(i)];
+    end
+
+    %Generate interpolant for each point
+    skel_moving_image_interpolator = griddedInterpolant(skel_moving_image_grid_vectors,single(permute(skel_moving,order)),'cubic');
+
+    %Generate the new grid of points for the resampled image
+
+    skel_moving_image_grid_vectors_resample = {};
+
+    for i = 1:ImageDimensionality
+       skel_moving_image_grid_vectors_resample{i} = [Origin(i):SpacingSize(i)*upsample_scaling:FarCorner(i)];
+    end
+
+    skel_moving = permute(skel_moving_image_interpolator(skel_moving_image_grid_vectors_resample),order);
+
+
+    %% Downsample binarized image for fixed image
+
+    %Set up rearrange of order using permute
+    order = length(size(bin_fixed_image));
+
+    order = [1:order];
+
+    order(1) = 2;
+    order(2) = 1;
+
+    %Generate the grid vectors for the image
+
+    FarCorner = Origin + SpacingSize.*(DimensionSize-1);
+
+    bin_fixed_image_grid_vectors = {};
+
+    for i = 1:ImageDimensionality
+       bin_fixed_image_grid_vectors{i} = [Origin(i):SpacingSize(i):FarCorner(i)];
+    end
+
+    %Generate interpolant for each point
+    bin_fixed_image_interpolator = griddedInterpolant(bin_fixed_image_grid_vectors,single(permute(bin_fixed_image,order)),'cubic');
+
+    %Generate the new grid of points for the resampled image
+
+    bin_fixed_image_grid_vectors_resample = {};
+
+    for i = 1:ImageDimensionality
+       bin_fixed_image_grid_vectors_resample{i} = [Origin(i):SpacingSize(i)*upsample_scaling:FarCorner(i)];
+    end
+
+    bin_fixed_image = permute(bin_fixed_image_interpolator(bin_fixed_image_grid_vectors_resample),order);
+
+    %% Downsample binarized image for moving image
+
+    %Set up rearrange of order using permute
+    order = length(size(bin_moving_image));
+
+    order = [1:order];
+
+    order(1) = 2;
+    order(2) = 1;
+
+    %Generate the grid vectors for the image
+
+    FarCorner = Origin + SpacingSize.*(DimensionSize-1);
+
+    bin_moving_image_grid_vectors = {};
+
+    for i = 1:ImageDimensionality
+       bin_moving_image_grid_vectors{i} = [Origin(i):SpacingSize(i):FarCorner(i)];
+    end
+
+    %Generate interpolant for each point
+    bin_moving_image_interpolator = griddedInterpolant(bin_moving_image_grid_vectors,single(permute(bin_moving_image,order)),'cubic');
+
+    %Generate the new grid of points for the resampled image
+
+    bin_moving_image_grid_vectors_resample = {};
+
+    for i = 1:ImageDimensionality
+       bin_moving_image_grid_vectors_resample{i} = [Origin(i):SpacingSize(i)*upsample_scaling:FarCorner(i)];
+    end
+
+    bin_moving_image = permute(bin_moving_image_interpolator(bin_moving_image_grid_vectors_resample),order);
+
+
+    % Additional step to threshold the binary images to ensure they are binary
+    skel_fixed = skel_fixed >= 0.25;
+    skel_moving = skel_moving >= 0.25;
+    bin_fixed_image = bin_fixed_image >= 0.25;
+    bin_moving_image = bin_moving_image >= 0.25;
+
+else
+	skel_fixed = [];
+	skel_moving = [];
+	bin_fixed_image = [];
+	bin_moving_image = [];
 end
-
-%Generate interpolant for each point
-skel_fixed_image_interpolator = griddedInterpolant(skel_fixed_image_grid_vectors,single(permute(skel_fixed,order)),'spline');
-
-%Generate the new grid of points for the resampled image
-
-skel_fixed_image_grid_vectors_resample = {};
-
-for i = 1:ImageDimensionality
-   skel_fixed_image_grid_vectors_resample{i} = [Origin(i):SpacingSize(i)*upsample_scaling:FarCorner(i)];
-end
-
-skel_fixed = permute(skel_fixed_image_interpolator(skel_fixed_image_grid_vectors_resample),order);
-
-%% Downsample skeleton for moving image
-
-%Set up rearrange of order using permute
-order = length(size(skel_moving));
-
-order = [1:order];
-
-order(1) = 2;
-order(2) = 1;
-
-%Generate the grid vectors for the image
-
-FarCorner = Origin + SpacingSize.*(DimensionSize-1);
-
-skel_moving_image_grid_vectors = {};
-
-for i = 1:ImageDimensionality
-   skel_moving_image_grid_vectors{i} = [Origin(i):SpacingSize(i):FarCorner(i)];
-end
-
-%Generate interpolant for each point
-skel_moving_image_interpolator = griddedInterpolant(skel_moving_image_grid_vectors,single(permute(skel_moving,order)),'spline');
-
-%Generate the new grid of points for the resampled image
-
-skel_moving_image_grid_vectors_resample = {};
-
-for i = 1:ImageDimensionality
-   skel_moving_image_grid_vectors_resample{i} = [Origin(i):SpacingSize(i)*upsample_scaling:FarCorner(i)];
-end
-
-skel_moving = permute(skel_moving_image_interpolator(skel_moving_image_grid_vectors_resample),order);
-
-
-%% Downsample binarized image for fixed image
-
-%Set up rearrange of order using permute
-order = length(size(bin_fixed_image));
-
-order = [1:order];
-
-order(1) = 2;
-order(2) = 1;
-
-%Generate the grid vectors for the image
-
-FarCorner = Origin + SpacingSize.*(DimensionSize-1);
-
-bin_fixed_image_grid_vectors = {};
-
-for i = 1:ImageDimensionality
-   bin_fixed_image_grid_vectors{i} = [Origin(i):SpacingSize(i):FarCorner(i)];
-end
-
-%Generate interpolant for each point
-bin_fixed_image_interpolator = griddedInterpolant(bin_fixed_image_grid_vectors,single(permute(bin_fixed_image,order)),'spline');
-
-%Generate the new grid of points for the resampled image
-
-bin_fixed_image_grid_vectors_resample = {};
-
-for i = 1:ImageDimensionality
-   bin_fixed_image_grid_vectors_resample{i} = [Origin(i):SpacingSize(i)*upsample_scaling:FarCorner(i)];
-end
-
-bin_fixed_image = permute(bin_fixed_image_interpolator(bin_fixed_image_grid_vectors_resample),order);
-
-%% Downsample binarized image for moving image
-
-%Set up rearrange of order using permute
-order = length(size(bin_moving_image));
-
-order = [1:order];
-
-order(1) = 2;
-order(2) = 1;
-
-%Generate the grid vectors for the image
-
-FarCorner = Origin + SpacingSize.*(DimensionSize-1);
-
-bin_moving_image_grid_vectors = {};
-
-for i = 1:ImageDimensionality
-   bin_moving_image_grid_vectors{i} = [Origin(i):SpacingSize(i):FarCorner(i)];
-end
-
-%Generate interpolant for each point
-bin_moving_image_interpolator = griddedInterpolant(bin_moving_image_grid_vectors,single(permute(bin_moving_image,order)),'spline');
-
-%Generate the new grid of points for the resampled image
-
-bin_moving_image_grid_vectors_resample = {};
-
-for i = 1:ImageDimensionality
-   bin_moving_image_grid_vectors_resample{i} = [Origin(i):SpacingSize(i)*upsample_scaling:FarCorner(i)];
-end
-
-bin_moving_image = permute(bin_moving_image_interpolator(bin_moving_image_grid_vectors_resample),order);
-
-
-% Additional step to threshold the binary images to ensure they are binary
-skel_fixed = skel_fixed >= 0.25;
-skel_moving = skel_moving >= 0.25;
-bin_fixed_image = bin_fixed_image >= 0.25;
-bin_moving_image = bin_moving_image >= 0.25;
-
 
 % Adjust found points in fixed and moving iamges back to original image resolution
 for i = 1:size(branchpts_fixed,1)

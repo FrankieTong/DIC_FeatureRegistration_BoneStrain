@@ -27,7 +27,10 @@ addpath('Utility')
 clear
  
 % Configuration file with images to be registered and analyzed for strain
-image_script_file = 'zero_strain_rescan.m';
+%image_script_file = 'zero_strain_rescan.m';
+image_script_file = 'FEA2_warped_image.m';
+%image_script_file = 'FEA_warped_image_deconv.m';
+%image_script_file = 'FEA3_warped_image.m';
 run(image_script_file);
 
 if (~exist('fixed_image_name','var') || ~exist('fixed_image_name','var'))
@@ -104,8 +107,7 @@ use_image_grid = false;					% Toggle to determine whether to use the feature poi
 
 %% MAIN PROGRAM STARTS HERE %%
 
-%% Apply active contour and finding the proper threshold number for the whole image before running DVC
-
+%% Apply active contour and finding the proper threshold number for the whole image before running DVCs
 % Generate mask to define where to apply active contour on fixed image
 mask = ones(size(fixed_image));
 mask( 5:end-5, 5:end-5) = 1;
@@ -293,7 +295,7 @@ if DVC_Only == false
         %[fixed_points_subset_matched, moving_points_subset_matched, matchMetric] = Skeletonization_Feature_Match_Clear(fixed_points_subset_found, moving_points_subset_found, fixed_image_threshold_method, rescaled_fixed_image_threshold ,moving_image_threshold_method, rescaled_moving_image_threshold, upsample_scaling, use_active_contour, segment_refine, clean_up_images, MaxRatio, MatchThreshold, BlockSize, display_figures, Skeletonization_Match_Param);
                 
         % Match feature points between fixed and moving images using sum of normalized correlation as the matching metric 
-        [fixed_points_subset_matched, moving_points_subset_matched, matchMetric, matchRatio] = corrmatch(fixed_points_subset_found, moving_points_subset_found, upsample_scaling, MaxRatio, MatchThreshold, BlockSize, Skeletonization_Match_Param);
+        [fixed_points_subset_matched, moving_points_subset_matched, matchMetric, matchRatio] = corrmatch2(fixed_points_subset_found, moving_points_subset_found, upsample_scaling, MaxRatio, MatchThreshold, BlockSize, Skeletonization_Match_Param);
      
         %% Store relevant information about matching this subset into global variables
 
@@ -342,10 +344,10 @@ if DVC_Only == false
 
 				%Create DVC image subsets on fixed and moving images. Creating moving image subset invovles interpolation as DVC displacement places the subset matched on the moving image off of the image grid
                 fixed_image_subset_find = rescaled_activecontour_fixed_image(last_WS.mesh_row(j)-offset_size:last_WS.mesh_row(j)+offset_size,last_WS.mesh_col(i)-offset_size:last_WS.mesh_col(i)+offset_size);
-                moving_image_subset_find = interp2(moving_image_X, moving_image_Y, rescaled_activecontour_moving_image, moving_image_subset_deform_X_a,moving_image_subset_deform_Y_a,'spline');
+                moving_image_subset_find = interp2(moving_image_X, moving_image_Y, rescaled_activecontour_moving_image, moving_image_subset_deform_X_a,moving_image_subset_deform_Y_a,'cubic');
 
                 fixed_image_subset_match = fixed_image(last_WS.mesh_row(j)-offset_size:last_WS.mesh_row(j)+offset_size,last_WS.mesh_col(i)-offset_size:last_WS.mesh_col(i)+offset_size);
-                moving_image_subset_match = interp2(moving_image_X, moving_image_Y, moving_image, moving_image_subset_deform_X_a,moving_image_subset_deform_Y_a,'spline');
+                moving_image_subset_match = interp2(moving_image_X, moving_image_Y, moving_image, moving_image_subset_deform_X_a,moving_image_subset_deform_Y_a,'cubic');
 
                 %Assigning the values for the subimage boundary boxes for the fixed and moving image subsets
                 fixed_image_feature_find_subimages_boundary = [fixed_image_feature_find_subimages_boundary; last_WS.mesh_row(j)-offset_size last_WS.mesh_col(i)-offset_size last_WS.subset_size last_WS.subset_size];
@@ -372,7 +374,7 @@ if DVC_Only == false
 
 
                 % Find feature points in fixed and moving images
-                [fixed_points_subset_found, moving_points_subset_found, skel_fixed_image_subset, skel_moving_image_subset, bin_fixed_image_subset, bin_moving_image_subset] = Skeletonization_Feature_Find(fixed_image_threshold_method, rescaled_fixed_image_threshold ,moving_image_threshold_method, rescaled_moving_image_threshold, upsample_scaling, use_active_contour, segment_refine, morph_close, morph_endpoints, morph_remove_branches, display_figures,Skeletonization_Find_Param);
+                [fixed_points_subset_found, moving_points_subset_found, skel_fixed_image_subset, skel_moving_image_subset, bin_fixed_image_subset, bin_moving_image_subset] = Skeletonization_Feature_Find_Clear(fixed_image_threshold_method, rescaled_fixed_image_threshold ,moving_image_threshold_method, rescaled_moving_image_threshold, upsample_scaling, use_active_contour, segment_refine, morph_close, morph_endpoints, morph_remove_branches, display_figures,Skeletonization_Find_Param);
 
 				% Add feature points found during the feature registration of this subimage to the global list
                 if ~isempty(fixed_points_subset_found)
@@ -404,7 +406,7 @@ if DVC_Only == false
                 %[fixed_points_subset_matched, moving_points_subset_matched, matchMetric] = Skeletonization_Feature_Match_Clear(fixed_points_subset_found, moving_points_subset_found, fixed_image_threshold_method, rescaled_fixed_image_threshold ,moving_image_threshold_method, rescaled_moving_image_threshold, upsample_scaling, use_active_contour, segment_refine, clean_up_images, MaxRatio, MatchThreshold, BlockSize, display_figures, Skeletonization_Match_Param);
                 
 				% Match feature points between fixed and moving images using sum of normalized correlation as the matching metric 
-                [fixed_points_subset_matched, moving_points_subset_matched, matchMetric, matchRatio] = corrmatch(fixed_points_subset_found, moving_points_subset_found, upsample_scaling, MaxRatio, MatchThreshold, BlockSize, Skeletonization_Match_Param);
+                [fixed_points_subset_matched, moving_points_subset_matched, matchMetric, matchRatio] = corrmatch2(fixed_points_subset_found, moving_points_subset_found, upsample_scaling, MaxRatio, MatchThreshold, BlockSize, Skeletonization_Match_Param);
                 
                 %% Store relevant information about matching this subset into global variables
 
@@ -443,20 +445,21 @@ if DVC_Only == false
 				
                 %Reconstruct moving image back to global cordinates
                 offset_spacing = floor((last_WS.subset_space)/2);
-                image_range_shift = [-offset_spacing:offset_spacing];
-                image_subset_range = [(ceil((last_WS.subset_size)/2)-offset_spacing):(ceil((last_WS.subset_size)/2)+offset_spacing)];
+                image_range_shift = -offset_spacing:offset_spacing;
+                image_subset_range = (ceil((last_WS.subset_size)/2)-offset_spacing):(ceil((last_WS.subset_size)/2)+offset_spacing);
 
                 moving_image_wrt_fixed_image(last_WS.mesh_row(j) + image_range_shift,last_WS.mesh_col(i) + image_range_shift) = moving_image_subset_find(image_subset_range,image_subset_range);
                 
                 % Reconstruct the fixed and moving binary images and image 
-                % skeletons back to the global coordinates
+                % skeletons back to the global coordinates (if needed)
+				if ~isempty(bin_fixed_image_subset) && ~isempty(bin_moving_image_subset) && ~isempty(skel_fixed_image_subset) && ~isempty(skel_moving_image_subset)
+					bin_fixed_image(last_WS.mesh_row(j) + image_range_shift,last_WS.mesh_col(i) + image_range_shift) = bin_fixed_image_subset(image_subset_range,image_subset_range);
+					bin_moving_image(last_WS.mesh_row(j) + image_range_shift,last_WS.mesh_col(i) + image_range_shift) = bin_moving_image_subset(image_subset_range,image_subset_range); % Not ideal, compare with fixed image and will be streched
 
-                bin_fixed_image(last_WS.mesh_row(j) + image_range_shift,last_WS.mesh_col(i) + image_range_shift) = bin_fixed_image_subset(image_subset_range,image_subset_range);
-                bin_moving_image(last_WS.mesh_row(j) + image_range_shift,last_WS.mesh_col(i) + image_range_shift) = bin_moving_image_subset(image_subset_range,image_subset_range); % Not ideal, compare with fixed image and will be streched
-
-                skel_fixed_image(last_WS.mesh_row(j) + image_range_shift,last_WS.mesh_col(i) + image_range_shift) = skel_fixed_image_subset(image_subset_range,image_subset_range);
-                skel_moving_image(last_WS.mesh_row(j) + image_range_shift,last_WS.mesh_col(i) + image_range_shift) = skel_moving_image_subset(image_subset_range,image_subset_range); % Not ideal, compare with fixed image and will be streched
-
+					skel_fixed_image(last_WS.mesh_row(j) + image_range_shift,last_WS.mesh_col(i) + image_range_shift) = skel_fixed_image_subset(image_subset_range,image_subset_range);
+					skel_moving_image(last_WS.mesh_row(j) + image_range_shift,last_WS.mesh_col(i) + image_range_shift) = skel_moving_image_subset(image_subset_range,image_subset_range); % Not ideal, compare with fixed image and will be streched
+				end
+					
                 % Assigning the values for the image reconstruction bounday boxes
                 fixed_image_reconstruct_subimages_boundary  = [fixed_image_reconstruct_subimages_boundary; (last_WS.mesh_row(j)+image_range_shift(1)), (last_WS.mesh_col(i)+image_range_shift(1)), (last_WS.subset_space), (last_WS.subset_space)];
                 moving_image_reconstruct_subimages_boundary  = [moving_image_reconstruct_subimages_boundary; (last_WS.mesh_row(j)+image_range_shift(1)), (last_WS.mesh_col(i)+image_range_shift(1)), (last_WS.subset_space), (last_WS.subset_space)]; % debatable if useful or not...
@@ -493,7 +496,7 @@ if DVC_Only == false
 	% We currently only applied the feature point match quality metrics on feature points matched within the same DVC subset. We now apply these match metrics across all remaining matched feature points.
     
 	% Identify if we have no matched feature points
-	if size(fixed_points,1) == 0 || size(moving_points,1) == 0
+    if size(fixed_points,1) == 0 || size(moving_points,1) == 0
         display('No matched points were found.');
         return
     end
@@ -793,10 +796,10 @@ if Skeletonization_Only == false
     line.Color = 'g';
 
     % Display displacement error statistics on plot
-    [displacement_stats.mean_error, displacement_stats.std_deviation, displacement_stats.ten_percentile, displacement_stats.ninety_percentile, displacement_stats.directional_similarity, displacement_stats.difference_of_magnitude, displacement_stats.magnitude_of_difference] = Skeletonization_Error(points, values);
+    [displacement_stats.mean_error, displacement_stats.absolute_mean_error, displacement_stats.std_deviation, displacement_stats.ten_percentile, displacement_stats.ninety_percentile, displacement_stats.directional_similarity, displacement_stats.difference_of_magnitude, displacement_stats.magnitude_of_difference] = Skeletonization_Error(points, values);
 
-    dim = [0.5 0.1 0.3 0.3];
-    str = {sprintf('mean error = %f', displacement_stats.mean_error),sprintf('std deviation = %f', displacement_stats.std_deviation), sprintf('10 percentile = %f', displacement_stats.ten_percentile) ...
+    dim = [0.5 0.125 0.3 0.3];
+    str = {sprintf('mean error = %f', displacement_stats.mean_error),sprintf('absolute mean error = %f', displacement_stats.absolute_mean_error), sprintf('std deviation = %f', displacement_stats.std_deviation), sprintf('10 percentile = %f', displacement_stats.ten_percentile) ...
                     ,sprintf('90 percentile = %f', displacement_stats.ninety_percentile), sprintf('directional similarity = %f', displacement_stats.directional_similarity), sprintf('difference of magnitude = %f', displacement_stats.difference_of_magnitude) ...
                         , sprintf('magnitude of difference = %f', displacement_stats.magnitude_of_difference)};
     annotation('textbox',dim,'String',str,'FitBoxToText','on');
@@ -842,10 +845,10 @@ if Skeletonization_Only == false
     line.Color = 'g';
 
     % Display strain error statistics on plot
-    [strain_stats.mean_error, strain_stats.std_deviation, strain_stats.ten_percentile, strain_stats.ninety_percentile, strain_stats.directional_similarity, strain_stats.difference_of_magnitude, strain_stats.magnitude_of_difference] = Skeletonization_Error(points, values);
+    [strain_stats.mean_error, strain_stats.std_deviation, strain_stats.absolute_mean_error, strain_stats.ten_percentile, strain_stats.ninety_percentile, strain_stats.directional_similarity, strain_stats.difference_of_magnitude, strain_stats.magnitude_of_difference] = Skeletonization_Error(points, values);
 
-    dim = [0.5 0.1 0.3 0.3];
-    str = {sprintf('mean error = %f', strain_stats.mean_error),sprintf('std deviation = %f', strain_stats.std_deviation), sprintf('10 percentile = %f', strain_stats.ten_percentile) ...
+    dim = [0.5 0.125 0.3 0.3];
+    str = {sprintf('mean error = %f', strain_stats.mean_error),sprintf('absolute mean error = %f', strain_stats.absolute_mean_error),sprintf('std deviation = %f', strain_stats.std_deviation), sprintf('10 percentile = %f', strain_stats.ten_percentile) ...
                     ,sprintf('90 percentile = %f', strain_stats.ninety_percentile), sprintf('directional similarity = %f', strain_stats.directional_similarity), sprintf('difference of magnitude = %f', strain_stats.difference_of_magnitude) ...
                         , sprintf('magnitude of difference = %f', strain_stats.magnitude_of_difference)};
     annotation('textbox',dim,'String',str,'FitBoxToText','on');
@@ -887,7 +890,7 @@ if DVC_Only == false
     x_axis_limits = [Origin(ImageDimensionality), FarCorner(ImageDimensionality)];
 
     points = fixed_points_MLS(:,ImageDimensionality)';
-    values = displacement(:,ImageDimensionality)';
+    values = moving_points_MLS(:,ImageDimensionality) - fixed_points_MLS(:,ImageDimensionality);
 
     ideal_points_location = ones(100,ImageDimensionality);
     for i = 1:ImageDimensionality
@@ -938,9 +941,9 @@ if DVC_Only == false
     % Displacement actual vs displacement ideal
     FarCorner = Origin + SpacingSize.*(DimensionSize-1);
 
-    ideal_points_wrt_nodal_points = displacement_eq(fixed_points_MLS);
-    points = ideal_points_wrt_nodal_points(:,ImageDimensionality);
-    values = displacement(:,ImageDimensionality);
+    ideal_points_wrt_fixed_points = displacement_eq(fixed_points_MLS);
+    points = ideal_points_wrt_fixed_points(:,ImageDimensionality);
+    values = moving_points_MLS(:,ImageDimensionality) - fixed_points_MLS(:,ImageDimensionality);
 
     ideal_points_location = ones(100,ImageDimensionality);
     for i = 1:ImageDimensionality
@@ -974,10 +977,10 @@ if DVC_Only == false
     line.Color = 'g';
 
     % Display displacement error statistics on plot
-    [displacement_stats.mean_error, displacement_stats.std_deviation, displacement_stats.ten_percentile, displacement_stats.ninety_percentile, displacement_stats.directional_similarity, displacement_stats.difference_of_magnitude, displacement_stats.magnitude_of_difference] = Skeletonization_Error(points, values);
+    [displacement_stats.mean_error, displacement_stats.absolute_mean_error, displacement_stats.std_deviation, displacement_stats.ten_percentile, displacement_stats.ninety_percentile, displacement_stats.directional_similarity, displacement_stats.difference_of_magnitude, displacement_stats.magnitude_of_difference] = Skeletonization_Error(points, values);
 
-    dim = [0.5 0.1 0.3 0.3];
-    str = {sprintf('mean error = %f', displacement_stats.mean_error),sprintf('std deviation = %f', displacement_stats.std_deviation), sprintf('10 percentile = %f', displacement_stats.ten_percentile) ...
+    dim = [0.5 0.125 0.3 0.3];
+    str = {sprintf('mean error = %f', displacement_stats.mean_error),sprintf('absolute mean error = %f', displacement_stats.absolute_mean_error), sprintf('std deviation = %f', displacement_stats.std_deviation), sprintf('10 percentile = %f', displacement_stats.ten_percentile) ...
                     ,sprintf('90 percentile = %f', displacement_stats.ninety_percentile), sprintf('directional similarity = %f', displacement_stats.directional_similarity), sprintf('difference of magnitude = %f', displacement_stats.difference_of_magnitude) ...
                         , sprintf('magnitude of difference = %f', displacement_stats.magnitude_of_difference)};
     annotation('textbox',dim,'String',str,'FitBoxToText','on');
@@ -1023,10 +1026,10 @@ if DVC_Only == false
     line.Color = 'g';
 
     % Display strain error statistics on plot
-    [strain_stats.mean_error, strain_stats.std_deviation, strain_stats.ten_percentile, strain_stats.ninety_percentile, strain_stats.directional_similarity, strain_stats.difference_of_magnitude, strain_stats.magnitude_of_difference] = Skeletonization_Error(points, values);
+    [strain_stats.mean_error, strain_stats.absolute_mean_error, strain_stats.std_deviation, strain_stats.ten_percentile, strain_stats.ninety_percentile, strain_stats.directional_similarity, strain_stats.difference_of_magnitude, strain_stats.magnitude_of_difference] = Skeletonization_Error(points, values);
 
-    dim = [0.5 0.1 0.3 0.3];
-    str = {sprintf('mean error = %f', strain_stats.mean_error),sprintf('std deviation = %f', strain_stats.std_deviation), sprintf('10 percentile = %f', strain_stats.ten_percentile) ...
+    dim = [0.5 0.125 0.3 0.3];
+    str = {sprintf('mean error = %f', strain_stats.mean_error),sprintf('absolute mean error = %f', strain_stats.absolute_mean_error), sprintf('std deviation = %f', strain_stats.std_deviation), sprintf('10 percentile = %f', strain_stats.ten_percentile) ...
                     ,sprintf('90 percentile = %f', strain_stats.ninety_percentile), sprintf('directional similarity = %f', strain_stats.directional_similarity), sprintf('difference of magnitude = %f', strain_stats.difference_of_magnitude) ...
                         , sprintf('magnitude of difference = %f', strain_stats.magnitude_of_difference)};
     annotation('textbox',dim,'String',str,'FitBoxToText','on');
